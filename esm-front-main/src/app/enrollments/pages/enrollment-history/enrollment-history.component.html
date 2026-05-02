@@ -1,0 +1,30 @@
+<section class="py-10 px-4 min-h-[85vh] bg-gray-50 dark:bg-slate-900">
+  <div class="max-w-4xl mx-auto">
+    <a routerLink="/enrollments" class="text-violet-600 font-medium mb-6 inline-block">Back to My Courses</a>
+    <h1 class="text-2xl font-bold mb-6">Enrollment History</h1>
+    <div class="flex gap-2 mb-6">
+      <button (click)="setFilter('all')" [class.bg-violet-600]="filter === 'all'" [class.text-white]="filter === 'all'" class="px-4 py-2 rounded-xl border">All</button>
+      <button (click)="setFilter('completed')" [class.bg-violet-600]="filter === 'completed'" [class.text-white]="filter === 'completed'" class="px-4 py-2 rounded-xl border">Completed</button>
+      <button (click)="setFilter('active')" [class.bg-violet-600]="filter === 'active'" [class.text-white]="filter === 'active'" class="px-4 py-2 rounded-xl border">In Progress</button>
+      <button (click)="setFilter('cancelled')" [class.bg-violet-600]="filter === 'cancelled'" [class.text-white]="filter === 'cancelled'" class="px-4 py-2 rounded-xl border">Cancelled</button>
+    </div>
+    @if (loading) { <div class="h-24 bg-gray-200 rounded-xl animate-pulse"></div> }
+    @if (error) { <div class="p-6 bg-red-50 rounded-2xl text-center"><p class="text-red-700">{{ error }}</p></div> }
+    @if (!loading && !error && filtered.length === 0) { <p class="text-gray-600 text-center py-16">No enrollments match.</p> }
+    @if (!loading && !error && filtered.length > 0) {
+      <div class="space-y-4">
+        @for (e of filtered; track e.id) {
+          <div class="rounded-xl bg-white dark:bg-slate-800 border p-4 flex flex-wrap items-center gap-4">
+            <span [class]="statusClass(e.status)" class="px-3 py-1 rounded-full text-xs font-semibold">{{ statusLabel(e.status) }}</span>
+            <span class="font-medium">Course #{{ e.courseId }}</span>
+            <span class="text-sm text-gray-500">Enrolled {{ e.enrolledAt | date:'mediumDate' }}</span>
+            @if (e.completedAt) { <span class="text-sm text-gray-500">Completed {{ e.completedAt | date:'mediumDate' }}</span> }
+            <div class="flex-1"></div>
+            @if (e.status === 'completed') { <a [routerLink]="['/enrollments', 'certificate', e.id]" class="text-violet-600 font-medium">Download Certificate</a> }
+            @if (e.status !== 'cancelled') { <a [routerLink]="['/enrollments', 'progress', e.id]" class="text-violet-600 font-medium">View Progress</a> }
+          </div>
+        }
+      </div>
+    }
+  </div>
+</section>

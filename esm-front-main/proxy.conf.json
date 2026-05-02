@@ -1,0 +1,21 @@
+{
+  "/enrollment-api": {
+    "target": "http://localhost:8084",
+    "secure": false,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/enrollment-api": "/api"
+    }
+  },
+  "/api": {
+    "target": "http://localhost:8083",
+    "secure": false,
+    "changeOrigin": true,
+    "timeout": 600000
+  },
+  "/uploads": {
+    "target": "http://localhost:8083",
+    "secure": false,
+    "changeOrigin": true
+  }
+}

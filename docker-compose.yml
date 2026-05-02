@@ -1,0 +1,104 @@
+services:
+  eureka:
+    image: eureka-server:latest
+    build: ./Eureka-main
+    ports:
+      - "8761:8761"
+    networks:
+      - esm-network
+
+  course-service:
+    build: ./course-service
+    restart: on-failure
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka
+    depends_on:
+      postgres-courses:
+        condition: service_healthy
+      eureka:
+        condition: service_started
+    volumes:
+      - course-uploads:/app/uploads
+    networks:
+      - esm-network
+
+  enrollment-service:
+    build: ./Enrollment-service
+    restart: on-failure
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka
+    depends_on:
+      postgres-enrollments:
+        condition: service_healthy
+      eureka:
+        condition: service_started
+    networks:
+      - esm-network
+
+  frontend:
+    build: ./esm-front-main
+    ports:
+      - "4200:4200"
+    depends_on:
+      - course-service
+      - enrollment-service
+    networks:
+      - esm-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - esm-network
+
+  postgres-courses:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: courses_db
+      POSTGRES_USER: esm
+      POSTGRES_PASSWORD: esm_secret
+    volumes:
+      - pg-courses-data:/var/lib/postgresql/data
+    networks:
+      - esm-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U esm -d courses_db"]
+      interval: 3s
+      timeout: 5s
+      retries: 5
+
+  postgres-enrollments:
+    image: postgres:16-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: enrollments_db
+      POSTGRES_USER: esm
+      POSTGRES_PASSWORD: esm_secret
+    volumes:
+      - pg-enrollments-data:/var/lib/postgresql/data
+    networks:
+      - esm-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U esm -d enrollments_db"]
+      interval: 3s
+      timeout: 5s
+      retries: 5
+
+networks:
+  esm-network:
+    driver: bridge
+
+volumes:
+  pg-courses-data:
+  pg-enrollments-data:
+  course-uploads:

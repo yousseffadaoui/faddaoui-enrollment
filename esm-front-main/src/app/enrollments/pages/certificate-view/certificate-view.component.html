@@ -1,0 +1,41 @@
+<section class="certificate-view-page py-10 px-4 lg:px-8 min-h-[85vh] bg-gray-50 dark:bg-slate-900 flex flex-col items-center">
+  <div class="max-w-3xl w-full">
+    <a routerLink="/enrollments" class="inline-flex items-center text-violet-600 dark:text-violet-400 font-medium mb-6 hover:underline">
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+      Back to My Courses
+    </a>
+
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-100 dark:bg-emerald-900/30 mb-4">
+        <svg class="w-10 h-10 text-emerald-600 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+      </div>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Certificate of Completion</h1>
+      <p class="text-gray-600 dark:text-gray-400">Your achievement certificate</p>
+    </div>
+
+    @if (loading) {
+      <div class="h-96 bg-gray-200 dark:bg-slate-600 rounded-2xl animate-pulse"></div>
+    }
+
+    @if (error) {
+      <div class="p-6 rounded-2xl bg-red-50 dark:bg-red-900/20 border border-red-200 text-center">
+        <p class="text-red-700 dark:text-red-400">{{ error }}</p>
+        <p class="text-sm text-gray-500 mt-2">Ensure the course is completed and a certificate is available.</p>
+      </div>
+    }
+
+    @if (pdfUrl && !loading) {
+      <div class="rounded-2xl overflow-hidden border border-gray-200 dark:border-slate-700 bg-white shadow-xl mb-6">
+        <iframe [src]="pdfUrl" class="w-full h-[500px]" title="Certificate PDF"></iframe>
+      </div>
+      <div class="flex flex-wrap gap-3 justify-center">
+        <button (click)="download()" class="inline-flex items-center px-6 py-3 rounded-xl bg-violet-600 text-white font-semibold hover:bg-violet-700">
+          Download PDF
+        </button>
+        <button (click)="share()" class="inline-flex items-center px-6 py-3 rounded-xl border border-gray-200 dark:border-slate-600 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-slate-800">
+          Share
+        </button>
+      </div>
+    }
+  </div>
+</section>

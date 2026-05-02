@@ -1,0 +1,361 @@
+<section class="course-progress-page py-8 px-4 lg:px-8 min-h-[85vh] bg-gray-50 dark:bg-slate-900">
+  <div class="max-w-4xl mx-auto">
+    <a routerLink="/enrollments" class="inline-flex items-center text-violet-600 dark:text-violet-400 font-medium mb-6 hover:underline">
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+      Back to My Courses
+    </a>
+
+    @if (loading) {
+      <div class="space-y-4">
+        <div class="h-8 bg-gray-200 dark:bg-slate-600 rounded w-1/3 animate-pulse"></div>
+        <div class="h-4 bg-gray-200 dark:bg-slate-600 rounded w-full animate-pulse"></div>
+        <div class="h-32 bg-gray-200 dark:bg-slate-600 rounded animate-pulse"></div>
+      </div>
+    }
+
+    @if (error) {
+      <div class="p-6 rounded-2xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-center">
+        <p class="text-red-700 dark:text-red-400 mb-4">{{ error }}</p>
+        <a routerLink="/enrollments" class="inline-flex items-center px-5 py-2.5 rounded-xl bg-violet-600 text-white font-medium hover:bg-violet-700">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+          Back to My Courses
+        </a>
+      </div>
+    }
+
+    @if (!loading && !error && (modules.length > 0 || courseName)) {
+      <!-- Sticky header with overall progress -->
+      <div class="sticky top-0 z-10 -mx-4 px-4 py-4 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-gray-100 dark:border-slate-800 mb-6">
+        <h1 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-2">{{ courseName }}</h1>
+        <div class="flex flex-wrap items-center gap-4">
+          <div class="flex-1 min-w-[180px]">
+            <app-progress-bar [percent]="progressPercent" [showLabel]="true" />
+          </div>
+          <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+            <span>~{{ estimatedMinutesRemaining }} min left</span>
+            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 text-xs font-semibold">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              Learning in progress
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-[minmax(0,1.4fr)_minmax(0,2fr)_minmax(0,1.4fr)] gap-6 items-start">
+        <!-- Left: curriculum & lesson checklist -->
+        <div class="space-y-3">
+          <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+            Learning path
+          </h2>
+          @if (modules.length === 0) {
+            <div class="rounded-xl bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 p-6 text-center">
+              <p class="text-gray-600 dark:text-gray-400 mb-2">No modules or lessons have been added to this course yet.</p>
+              <p class="text-sm text-gray-500 dark:text-gray-500">Use the Practice zone and Quiz on the right to get started. Your instructor may add content later.</p>
+            </div>
+          }
+          @for (mod of modules; track mod.id) {
+            <div class="rounded-xl bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 overflow-hidden">
+              <button
+                (click)="toggleModule(mod.id!)"
+                class="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors"
+              >
+                <div>
+                  <p class="font-semibold text-gray-900 dark:text-white">{{ mod.title }}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                    {{ (mod.lessons?.length || 0) }} lessons
+                  </p>
+                </div>
+                <svg
+                  class="w-5 h-5 text-gray-500 transition-transform"
+                  [class.rotate-180]="isExpanded(mod.id!)"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              @if (isExpanded(mod.id!)) {
+                <div class="border-t border-gray-100 dark:border-slate-700 p-4 space-y-2">
+                  @for (lesson of mod.lessons || []; track lesson.id) {
+                    <button
+                      type="button"
+                      class="w-full flex items-center gap-3 p-3 rounded-lg bg-slate-50/60 dark:bg-slate-900/40 hover:bg-slate-100 dark:hover:bg-slate-800/60 text-left transition-colors"
+                      [class.ring-2]="selectedLesson?.id === lesson.id"
+                      [class.ring-violet-500]="selectedLesson?.id === lesson.id"
+                      (click)="selectLesson(lesson)"
+                    >
+                      @if (isCompleted(lesson.id!)) {
+                        <span class="shrink-0 w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                          <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                        </span>
+                      } @else {
+                        <span class="shrink-0 w-8 h-8 rounded-full bg-gray-200 dark:bg-slate-600 flex items-center justify-center text-sm font-medium text-gray-600 dark:text-gray-300">
+                          {{ (lesson.orderIndex ?? 0) + 1 }}
+                        </span>
+                      }
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ lesson.title }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                          {{ lesson.durationMinutes || 0 }} min · {{ lesson.contentType || 'PRACTICE' }}
+                        </p>
+                      </div>
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Center: lesson content viewer (video, text, etc.) -->
+        <div class="rounded-2xl bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 overflow-hidden min-h-[320px]">
+          @if (selectedLesson) {
+            <div class="p-4 border-b border-gray-100 dark:border-slate-700 flex items-center justify-between">
+              <h3 class="font-semibold text-gray-900 dark:text-white">{{ selectedLesson.title }}</h3>
+              <button
+                type="button"
+                class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-700"
+                (click)="closeLesson()"
+                aria-label="Close"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div class="p-4">
+              @if (selectedLesson.contentType === 'PDF' && selectedLesson.contentUrl) {
+                <iframe
+                  class="w-full rounded-xl border border-gray-200 dark:border-slate-600 mb-4"
+                  [src]="getSafeVideoUrl(selectedLesson.contentUrl)!"
+                  title="Lesson PDF"
+                  style="height: 500px;"
+                ></iframe>
+              }
+              @if (selectedLesson.contentType !== 'PDF' && getVideoEmbedUrl(selectedLesson.contentUrl)) {
+                <div class="aspect-video w-full rounded-xl overflow-hidden bg-black mb-4">
+                  @if (selectedLesson.contentUrl && (selectedLesson.contentUrl.includes('youtube') || selectedLesson.contentUrl.includes('youtu.be') || selectedLesson.contentUrl.includes('vimeo'))) {
+                    <iframe
+                      class="w-full h-full"
+                      [src]="getSafeVideoUrl(selectedLesson.contentUrl)!"
+                      title="Lesson video"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowfullscreen
+                    ></iframe>
+                  } @else {
+                    <video
+                      class="w-full h-full"
+                      controls
+                      [src]="getSafeVideoUrl(selectedLesson.contentUrl)!"
+                      controlsList="nodownload"
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  }
+                </div>
+              }
+              @if (selectedLesson.contentText) {
+                <div class="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 text-sm whitespace-pre-wrap">{{ selectedLesson.contentText }}</div>
+              }
+              @if (!selectedLesson.contentText && !getVideoEmbedUrl(selectedLesson.contentUrl) && !(selectedLesson.contentType === 'PDF' && selectedLesson.contentUrl)) {
+                @if (selectedLesson.contentUrl) {
+                  <a [href]="selectedLesson.contentUrl" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-violet-600 dark:text-violet-400 font-medium hover:underline">
+                    Open content in new tab
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                  </a>
+                } @else {
+                  <p class="text-gray-500 dark:text-gray-400">No content has been added to this lesson yet.</p>
+                }
+              }
+              <div class="mt-4 pt-4 border-t border-gray-100 dark:border-slate-700">
+                @if (!isCompleted(selectedLesson.id!)) {
+                  <button
+                    (click)="markComplete(selectedLesson.id!)"
+                    class="px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700"
+                  >
+                    Mark as complete
+                  </button>
+                } @else {
+                  <span class="inline-flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-sm font-medium">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                    Completed
+                  </span>
+                }
+              </div>
+            </div>
+          } @else {
+            <div class="flex flex-col items-center justify-center min-h-[320px] p-8 text-center">
+              <div class="w-16 h-16 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center mb-4">
+                <svg class="w-8 h-8 text-violet-600 dark:text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <p class="text-gray-600 dark:text-gray-400 font-medium mb-1">Click a lesson to view content</p>
+              <p class="text-sm text-gray-500 dark:text-gray-500">Watch the video, read the text, then mark it complete.</p>
+            </div>
+          }
+        </div>
+
+        <!-- Right: practice, quiz, certificate -->
+        <aside class="space-y-5">
+          <div class="rounded-2xl bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 p-5 shadow-sm">
+            <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3">
+              Practice zone
+            </h2>
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
+              Use these prompts to practise what you just learned before taking the quiz.
+            </p>
+            <ul class="space-y-3 text-sm text-gray-700 dark:text-gray-200">
+              <li class="flex gap-2">
+                <span class="mt-1 h-1.5 w-1.5 rounded-full bg-violet-500"></span>
+                Record yourself reading a short paragraph using the new vocabulary.
+              </li>
+              <li class="flex gap-2">
+                <span class="mt-1 h-1.5 w-1.5 rounded-full bg-violet-500"></span>
+                Write 3–5 example sentences and check them against the lesson rules.
+              </li>
+              <li class="flex gap-2">
+                <span class="mt-1 h-1.5 w-1.5 rounded-full bg-violet-500"></span>
+                Summarise the lesson in your own words in one short paragraph.
+              </li>
+            </ul>
+          </div>
+
+          <div class="rounded-2xl bg-slate-900 text-slate-50 p-5 shadow-lg relative overflow-hidden"
+               [class.opacity-75]="progressPercent < 100 && !quizStarted && !quizFinished">
+            <div class="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-violet-600/40 blur-2xl"></div>
+            <h2 class="text-sm font-semibold uppercase tracking-wide text-violet-200 mb-2">
+              English level quiz
+            </h2>
+
+            @if (progressPercent < 100 && !quizStarted && !quizFinished) {
+              <p class="text-sm text-slate-300 mb-3">
+                Complete all lessons in the learning path to unlock the quiz.
+              </p>
+              <div class="flex items-center gap-2 text-xs text-amber-200">
+                <svg class="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                </svg>
+                <span>Quiz locked · {{ progressPercent | number:'1.0-0' }}% complete</span>
+              </div>
+            }
+
+            @if (progressPercent >= 100 && !quizStarted && !quizFinished) {
+              <p class="text-sm text-slate-100 mb-4">
+                All lessons complete! Take the quiz. Get at least {{ certificateMinCorrect }} correct answers to earn your certificate.
+              </p>
+              <button
+                (click)="startQuiz()"
+                class="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-violet-500 text-white text-sm font-semibold hover:bg-violet-600"
+              >
+                Start quiz
+              </button>
+            }
+
+            @if (quizStarted && !quizFinished) {
+              <div class="mb-3 text-xs text-violet-100 flex items-center justify-between gap-2">
+                <span>Question {{ currentQuestionIndex + 1 }} of {{ quizQuestions.length }}</span>
+              </div>
+              @let q = quizQuestions[currentQuestionIndex];
+              <p class="text-sm text-slate-50 font-medium mb-3">
+                {{ q.text }}
+              </p>
+              <div class="space-y-2 mb-4">
+                @for (optKey of optionKeys; track optKey) {
+                  <button
+                    type="button"
+                    class="w-full flex text-left px-3 py-2 rounded-lg border text-sm"
+                    [class.bg-violet-500]="isSelected(q, optKey)"
+                    [class.text-white]="isSelected(q, optKey)"
+                    [class.border-violet-400]="isSelected(q, optKey)"
+                    [class.bg-slate-800]="!isSelected(q, optKey)"
+                    [class.border-slate-600]="!isSelected(q, optKey)"
+                    (click)="selectOption(q, optKey)"
+                  >
+                    <span class="mr-2 font-semibold">{{ optKey }}.</span>
+                    <span>{{ q.options[optKey] }}</span>
+                  </button>
+                }
+              </div>
+              <div class="flex items-center justify-between gap-3 text-xs">
+                <button
+                  type="button"
+                  class="px-3 py-1.5 rounded-lg border border-slate-500 text-slate-100 disabled:opacity-40"
+                  [disabled]="currentQuestionIndex === 0"
+                  (click)="prevQuestion()"
+                >
+                  Previous
+                </button>
+                <button
+                  type="button"
+                  class="px-3 py-1.5 rounded-lg bg-violet-500 text-white font-semibold hover:bg-violet-600"
+                  (click)="currentQuestionIndex === quizQuestions.length - 1 ? submitQuiz() : nextQuestion()"
+                >
+                  {{ currentQuestionIndex === quizQuestions.length - 1 ? 'Finish quiz' : 'Next' }}
+                </button>
+              </div>
+            }
+
+            @if (quizFinished) {
+              <p class="text-sm text-slate-100 mb-1">
+                You answered {{ quizScorePercent }}% of questions correctly ({{ quizCorrectCount }} / {{ quizQuestions.length }}).
+              </p>
+              <p class="text-sm font-semibold text-violet-200 mb-3">
+                Estimated CEFR level: {{ quizLevelLabel }}
+              </p>
+              @if (quizCorrectCount >= certificateMinCorrect) {
+                <p class="text-xs text-emerald-200 mb-3">
+                  Great work! You answered at least {{ certificateMinCorrect }} questions correctly, so your course certificate is unlocked.
+                </p>
+                <a
+                  [routerLink]="['/enrollments', 'certificate', enrollmentId]"
+                  class="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-semibold hover:bg-emerald-600 mb-3"
+                >
+                  Get my certificate
+                </a>
+              } @else {
+                <p class="text-xs text-slate-200 mb-3">
+                  Answer at least {{ certificateMinCorrect }} questions correctly to unlock your certificate automatically.
+                </p>
+              }
+              <div class="flex items-center gap-3 text-xs text-slate-200 mb-4">
+                <span>Retake the quiz to improve your score, then continue marking lessons complete on the left.</span>
+              </div>
+              <button
+                type="button"
+                class="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-violet-500 text-white text-sm font-semibold hover:bg-violet-600"
+                (click)="resetQuiz()"
+              >
+                Retake quiz
+              </button>
+            }
+          </div>
+
+          <div class="rounded-2xl border border-emerald-200 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 p-5">
+            <h2 class="text-sm font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300 mb-1">
+              Certificate of completion
+            </h2>
+            <p class="text-sm text-emerald-900 dark:text-emerald-100 mb-4">
+              Complete all lessons, then pass the quiz ({{ certificateMinCorrect }}+ correct) to unlock your certificate.
+            </p>
+            @if (progressPercent >= 100 && quizCorrectCount >= certificateMinCorrect) {
+              <a
+                [routerLink]="['/enrollments', 'certificate', enrollmentId]"
+                class="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700"
+              >
+                Download your certificate
+              </a>
+            } @else {
+              <div class="flex items-center justify-between gap-3 text-xs text-emerald-900 dark:text-emerald-100">
+                <span>Progress {{ progressPercent | number:'1.0-0' }}% · Keep going!</span>
+                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white/80 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                  Locked
+                </span>
+              </div>
+            }
+          </div>
+        </aside>
+      </div>
+    }
+  </div>
+</section>

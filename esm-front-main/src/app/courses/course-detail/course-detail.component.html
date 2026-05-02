@@ -1,0 +1,207 @@
+<div class="course-detail min-h-screen bg-slate-50">
+  <!-- Loading -->
+  <div *ngIf="loading" class="max-w-6xl mx-auto px-4 py-16">
+    <div class="animate-pulse space-y-6">
+      <div class="h-10 w-3/4 bg-gray-200 rounded"></div>
+      <div class="h-6 w-1/2 bg-gray-200 rounded"></div>
+      <div class="h-48 bg-gray-200 rounded-2xl"></div>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error" class="max-w-xl mx-auto px-4 py-16 text-center">
+    <p class="text-red-600 font-medium mb-4">{{ error }}</p>
+    <a routerLink="/courses" class="text-violet-600 font-semibold hover:underline">← Back to courses</a>
+  </div>
+
+  <div *ngIf="!loading && !error && course" class="max-w-6xl mx-auto px-4 py-8">
+    <!-- Top section -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 mb-8">
+      <a routerLink="/courses" class="inline-flex items-center text-gray-500 hover:text-violet-600 text-sm font-medium mb-6">
+        ← Back to courses
+      </a>
+      <div class="flex flex-col lg:flex-row gap-8">
+        <div class="flex-1">
+          <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-violet-100 text-violet-700 mb-3">
+            {{ course.level || 'All Levels' }}
+          </span>
+          <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{{ course.name }}</h1>
+          <p class="text-gray-600 mb-6">{{ course.description }}</p>
+          <div class="flex flex-wrap gap-4 text-sm text-gray-600 mb-6">
+            <span *ngIf="course.ratingAvg != null" class="flex items-center text-amber-500 font-medium">
+              ★ {{ course.ratingAvg }} ({{ course.ratingCount || 0 }} reviews)
+            </span>
+            <span *ngIf="enrollmentCount > 0">{{ enrollmentCount }} students enrolled</span>
+            <span>{{ course.level }} level</span>
+          </div>
+          <div class="flex flex-wrap gap-4">
+            <button
+              (click)="enrollInCourse()"
+              [disabled]="enrolling"
+              class="px-6 py-3 bg-violet-600 text-white rounded-xl font-semibold hover:bg-violet-700 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {{ enrolling ? 'Enrolling...' : 'Enroll Now' }}
+            </button>
+            <button class="px-6 py-3 border border-gray-300 rounded-xl font-medium hover:bg-gray-50">
+              Preview
+            </button>
+          </div>
+        </div>
+        <div *ngIf="instructor" class="flex items-center gap-4 lg:w-64">
+          <img
+            *ngIf="instructor.avatarUrl"
+            [src]="instructor.avatarUrl"
+            [alt]="instructor.firstName"
+            class="w-16 h-16 rounded-full object-cover"
+          />
+          <div *ngIf="!instructor.avatarUrl" class="w-16 h-16 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 font-bold text-xl">
+            {{ instructor.firstName.charAt(0) }}{{ instructor.lastName.charAt(0) }}
+          </div>
+          <div>
+            <p class="text-xs text-gray-500">Instructor</p>
+            <p class="font-semibold text-gray-900">{{ instructor.firstName }} {{ instructor.lastName }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-8">
+      <!-- Main content -->
+      <div class="flex-1">
+        <!-- Tabs -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div class="flex border-b border-gray-200">
+            <button
+              (click)="setTab('overview')"
+              [class]="activeTab === 'overview' ? 'border-violet-600 text-violet-600 border-b-2 font-semibold' : 'text-gray-500 hover:text-gray-700'"
+              class="px-6 py-4 text-sm"
+            >
+              Overview
+            </button>
+            <button
+              (click)="setTab('curriculum')"
+              [class]="activeTab === 'curriculum' ? 'border-violet-600 text-violet-600 border-b-2 font-semibold' : 'text-gray-500 hover:text-gray-700'"
+              class="px-6 py-4 text-sm"
+            >
+              Curriculum
+            </button>
+            <button
+              (click)="setTab('reviews')"
+              [class]="activeTab === 'reviews' ? 'border-violet-600 text-violet-600 border-b-2 font-semibold' : 'text-gray-500 hover:text-gray-700'"
+              class="px-6 py-4 text-sm"
+            >
+              Reviews
+            </button>
+            <button
+              (click)="setTab('instructor')"
+              [class]="activeTab === 'instructor' ? 'border-violet-600 text-violet-600 border-b-2 font-semibold' : 'text-gray-500 hover:text-gray-700'"
+              class="px-6 py-4 text-sm"
+            >
+              Instructor
+            </button>
+          </div>
+          <div class="p-6">
+            <!-- Overview -->
+            <div *ngIf="activeTab === 'overview'">
+              <h3 class="font-bold text-gray-900 mb-3">About this course</h3>
+              <p class="text-gray-600 leading-relaxed">{{ course.description || 'No description available.' }}</p>
+            </div>
+
+            <!-- Curriculum -->
+            <div *ngIf="activeTab === 'curriculum'">
+              <p class="text-sm text-gray-500 mb-4">{{ modules.length }} modules · {{ getTotalLessons() }} lessons · {{ getTotalDuration() }} min total</p>
+              <div class="space-y-2">
+                <div
+                  *ngFor="let m of modules"
+                  class="border border-gray-200 rounded-lg overflow-hidden"
+                >
+                  <button
+                    (click)="toggleModule(m.id!)"
+                    class="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 text-left font-medium"
+                  >
+                    <span>{{ m.title }}</span>
+                    <span class="text-gray-500 text-sm">{{ m.lessons?.length || 0 }} lessons</span>
+                    <svg
+                      [class.rotate-180]="isExpanded(m.id!)"
+                      class="w-5 h-5 text-gray-500 transition-transform"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  <div *ngIf="isExpanded(m.id!) && m.lessons?.length" class="border-t border-gray-200 divide-y divide-gray-100">
+                    <div
+                      *ngFor="let l of m.lessons"
+                      class="flex items-center justify-between px-4 py-3 text-sm"
+                    >
+                      <span class="text-gray-700">{{ l.title }}</span>
+                      <span class="text-gray-500">{{ l.durationMinutes || 0 }} min</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p *ngIf="modules.length === 0" class="text-gray-500">No curriculum available yet.</p>
+            </div>
+
+            <!-- Reviews -->
+            <div *ngIf="activeTab === 'reviews'">
+              <div *ngFor="let r of reviews" class="border-b border-gray-100 pb-4 mb-4 last:border-0 last:mb-0">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="text-amber-500">★</span>
+                  <span class="font-medium">{{ r.rating }}/5</span>
+                </div>
+                <p class="text-gray-600 text-sm">{{ r.comment || 'No comment.' }}</p>
+              </div>
+              <p *ngIf="reviews.length === 0" class="text-gray-500">No reviews yet.</p>
+            </div>
+
+            <!-- Instructor -->
+            <div *ngIf="activeTab === 'instructor'">
+              <div *ngIf="instructor" class="flex gap-4">
+                <img
+                  *ngIf="instructor.avatarUrl"
+                  [src]="instructor.avatarUrl"
+                  class="w-20 h-20 rounded-full object-cover"
+                />
+                <div *ngIf="!instructor.avatarUrl" class="w-20 h-20 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 font-bold text-2xl">
+                  {{ instructor.firstName.charAt(0) }}{{ instructor.lastName.charAt(0) }}
+                </div>
+                <div>
+                  <h3 class="font-bold text-lg text-gray-900">{{ instructor.firstName }} {{ instructor.lastName }}</h3>
+                  <p *ngIf="instructor.email" class="text-gray-500 text-sm">{{ instructor.email }}</p>
+                  <p class="text-gray-600 mt-3">{{ instructor.bio || 'No bio available.' }}</p>
+                </div>
+              </div>
+              <p *ngIf="!instructor" class="text-gray-500">No instructor assigned.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right sidebar (sticky) -->
+      <aside class="lg:w-80 shrink-0">
+        <div class="lg:sticky lg:top-8 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <div class="text-2xl font-bold text-gray-900 mb-6">
+            {{ course.price != null && course.price > 0 ? (course.price | number:'1.2-2') + ' €' : 'Free' }}
+          </div>
+          <button
+            (click)="enrollInCourse()"
+            [disabled]="enrolling"
+            class="block w-full py-3 text-center bg-violet-600 text-white rounded-xl font-semibold hover:bg-violet-700 mb-6 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {{ enrolling ? 'Enrolling...' : 'Enroll Now' }}
+          </button>
+          <h4 class="font-semibold text-gray-900 mb-3">This course includes</h4>
+          <ul class="space-y-2 text-sm text-gray-600">
+            <li class="flex items-center gap-2">✓ {{ getTotalDuration() }} minutes of content</li>
+            <li class="flex items-center gap-2">✓ {{ getTotalLessons() }} lessons</li>
+            <li class="flex items-center gap-2">✓ Access on any device</li>
+            <li class="flex items-center gap-2">✓ Certificate of completion</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,49 @@
+<header class="bg-white/95 backdrop-blur border-b border-gray-200/80 sticky top-0 z-50 shadow-sm">
+  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex h-20 items-center justify-between">
+      <a routerLink="/" class="shrink-0 flex items-center gap-2">
+        <img src="assets/images/logo.png" alt="ESM Logo" class="h-10 w-auto" />
+      </a>
+
+      <div class="hidden md:flex md:items-center md:gap-10 text-base font-medium">
+        <a routerLink="/" class="text-gray-700 hover:text-violet-600 transition-colors duration-200">Home</a>
+        <a routerLink="/courses" class="text-gray-700 hover:text-violet-600 transition-colors duration-200">Courses</a>
+        <a routerLink="/enrollments" class="text-gray-700 hover:text-violet-600 transition-colors duration-200">My Courses</a>
+        <a routerLink="/dashboard_admin" class="text-gray-700 hover:text-violet-600 transition-colors duration-200">Admin</a>
+        <a routerLink="/signup" class="text-gray-700 hover:text-violet-600 transition-colors duration-200">Sign Up</a>
+      </div>
+
+      <div class="hidden md:block">
+        <a
+          routerLink="/signin"
+          class="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-violet-500 px-6 py-3 text-sm font-semibold text-white shadow-md shadow-violet-500/25 hover:shadow-violet-500/40 hover:scale-105 transition-all duration-300"
+        >
+          Log In
+        </a>
+      </div>
+
+      <button
+        type="button"
+        class="md:hidden p-2 text-gray-600 hover:text-violet-600 rounded-lg"
+        id="mobile-menu-button"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+      >
+        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="hidden md:hidden pb-4" id="mobile-menu">
+      <div class="space-y-1 pt-4 border-t border-gray-200">
+        <a routerLink="/" class="block px-4 py-3 text-gray-700 hover:bg-violet-50 hover:text-violet-600 rounded-lg transition-colors">Home</a>
+        <a routerLink="/courses" class="block px-4 py-3 text-gray-700 hover:bg-violet-50 hover:text-violet-600 rounded-lg transition-colors">Courses</a>
+        <a routerLink="/enrollments" class="block px-4 py-3 text-gray-700 hover:bg-violet-50 hover:text-violet-600 rounded-lg transition-colors">My Courses</a>
+        <a routerLink="/dashboard_admin" class="block px-4 py-3 text-gray-700 hover:bg-violet-50 hover:text-violet-600 rounded-lg transition-colors">Admin</a>
+        <a routerLink="/signup" class="block px-4 py-3 text-gray-700 hover:bg-violet-50 hover:text-violet-600 rounded-lg transition-colors">Sign Up</a>
+        <a routerLink="/signin" class="block mt-4 mx-4 text-center rounded-xl bg-violet-600 px-6 py-3 text-white font-semibold">Log In</a>
+      </div>
+    </div>
+  </nav>
+</header>

@@ -1,0 +1,9 @@
+.hero-3d-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.hero-3d-canvas canvas {
+  display: block;
+}

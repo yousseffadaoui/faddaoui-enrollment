@@ -1,0 +1,191 @@
+<section class="courses-page py-12 px-4 lg:px-8 min-h-[85vh] bg-gradient-to-b from-slate-50 to-white">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-10">
+      <p class="text-violet-600 text-sm font-bold tracking-widest uppercase mb-3">Our Catalog</p>
+      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Explore English Courses</h1>
+      <p class="text-gray-600 text-lg max-w-2xl mx-auto">
+        Explore our comprehensive curriculum designed for all proficiency levels.
+        From beginner to advanced, find the perfect course for your journey.
+      </p>
+    </div>
+
+    <!-- Filters & Search -->
+    <div class="mb-8 p-5 bg-white rounded-2xl shadow-sm border border-gray-100">
+      <div class="flex flex-wrap gap-3 items-end">
+        <div class="flex-1 min-w-[180px]">
+          <label class="block text-xs font-medium text-gray-500 mb-1">Search</label>
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            (keyup.enter)="search()"
+            placeholder="Search courses..."
+            class="w-full rounded-xl border border-gray-200 px-4 py-2.5 focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+          />
+        </div>
+        <div class="w-28">
+          <label class="block text-xs font-medium text-gray-500 mb-1">Level</label>
+          <select [(ngModel)]="filterLevel" class="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm">
+            <option value="">All Levels</option>
+            <option value="A1">A1</option>
+            <option value="A2">A2</option>
+            <option value="B1">B1</option>
+            <option value="B2">B2</option>
+            <option value="C1">C1</option>
+            <option value="C2">C2</option>
+          </select>
+        </div>
+        <div class="w-40">
+          <label class="block text-xs font-medium text-gray-500 mb-1">Category</label>
+          <select [(ngModel)]="filterCategoryId" class="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm">
+            <option [ngValue]="null">All Categories</option>
+            <option *ngFor="let c of categories" [ngValue]="c.id">{{ c.name }}</option>
+          </select>
+        </div>
+        <div class="w-28">
+          <label class="block text-xs font-medium text-gray-500 mb-1">Price</label>
+          <select [(ngModel)]="filterPrice" class="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm">
+            <option value="">All</option>
+            <option value="free">Free</option>
+            <option value="paid">Paid</option>
+          </select>
+        </div>
+        <div class="w-28">
+          <label class="block text-xs font-medium text-gray-500 mb-1">Rating</label>
+          <select [(ngModel)]="filterMinRating" class="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm">
+            <option value="">Any</option>
+            <option value="4">4+ stars</option>
+            <option value="3">3+ stars</option>
+          </select>
+        </div>
+        <div class="w-40">
+          <label class="block text-xs font-medium text-gray-500 mb-1">Sort by</label>
+          <select [(ngModel)]="sortBy" class="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm">
+            <option value="newest">Newest</option>
+            <option value="popular">Most Popular</option>
+            <option value="rating">Highest Rated</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+          </select>
+        </div>
+        <button (click)="search()" class="px-5 py-2.5 bg-violet-600 text-white rounded-xl font-semibold hover:bg-violet-700 transition-colors">
+          Search
+        </button>
+        <button (click)="clearFilters()" class="px-4 py-2.5 border border-gray-200 rounded-xl font-medium hover:bg-gray-50">
+          Clear
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading skeleton -->
+    <div *ngIf="loading" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div *ngFor="let _ of [1,2,3,4,5,6]" class="rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden animate-pulse">
+        <div class="h-40 bg-gray-200"></div>
+        <div class="p-5 space-y-3">
+          <div class="h-4 w-12 rounded-full bg-gray-200"></div>
+          <div class="h-6 w-3/4 bg-gray-200 rounded"></div>
+          <div class="h-3 w-full bg-gray-200 rounded"></div>
+          <div class="h-3 w-2/3 bg-gray-200 rounded"></div>
+          <div class="flex gap-4 pt-2">
+            <div class="h-4 w-16 bg-gray-200 rounded"></div>
+            <div class="h-4 w-20 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="error" class="max-w-xl mx-auto p-6 rounded-2xl bg-red-50 border border-red-200 text-center">
+      <p class="text-red-700 font-medium">{{ error }}</p>
+    </div>
+
+    <!-- Course grid -->
+    <div *ngIf="!loading && !error && courses.length > 0" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <article
+        *ngFor="let course of courses"
+        class="course-card group rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-xl hover:border-violet-200 transition-all duration-300 overflow-hidden flex flex-col"
+      >
+        <div class="relative h-44 bg-gradient-to-br from-violet-100 to-indigo-100 overflow-hidden">
+          <div class="absolute inset-0 w-full h-full flex items-center justify-center text-violet-400">
+            <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+          <img
+            *ngIf="getThumbnail(course)"
+            [src]="getThumbnail(course)"
+            [alt]="course.name"
+            class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 z-10"
+            (error)="$any($event.target).style.display='none'"
+          />
+          <span class="absolute top-3 left-3 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white/90 text-violet-700 shadow-sm">
+            {{ course.level || 'All Levels' }}
+          </span>
+        </div>
+        <div class="p-5 flex-1 flex flex-col">
+          <h3 class="text-lg font-bold text-gray-900 mb-2 group-hover:text-violet-700 transition-colors line-clamp-2">
+            {{ course.name || 'English Course' }}
+          </h3>
+          <p class="text-gray-600 text-sm leading-relaxed line-clamp-2 mb-3 flex-1">
+            {{ truncate(course.description, 120) }}
+          </p>
+          <p class="text-gray-500 text-xs mb-3">{{ getInstructorName(course.instructorId) }}</p>
+          <div class="flex flex-wrap items-center gap-3 text-sm mb-4">
+            <span *ngIf="course.ratingAvg != null" class="flex items-center text-amber-500 font-medium">
+              ★ {{ course.ratingAvg }} <span class="text-gray-400 font-normal ml-1">({{ course.ratingCount || 0 }})</span>
+            </span>
+            <span *ngIf="getEnrolledCount(course.courseId) > 0" class="text-gray-500">
+              {{ getEnrolledCount(course.courseId) }} students
+            </span>
+            <span *ngIf="course.price != null && course.price > 0" class="font-bold text-gray-900 ml-auto">
+              {{ course.price | number:'1.2-2' }} €
+            </span>
+            <span *ngIf="!course.price || course.price === 0" class="font-bold text-emerald-600 ml-auto">Free</span>
+          </div>
+          <a
+            [routerLink]="['/courses', course.courseId]"
+            class="inline-flex items-center justify-center w-full py-2.5 bg-violet-600 text-white rounded-xl font-semibold hover:bg-violet-700 transition-colors text-sm"
+          >
+            View Details
+            <svg class="w-4 h-4 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </a>
+        </div>
+      </article>
+    </div>
+
+    <!-- Empty state -->
+    <div *ngIf="!loading && courses.length === 0 && !error" class="text-center py-20">
+      <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gray-100 mb-6">
+        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        </svg>
+      </div>
+      <h3 class="text-xl font-semibold text-gray-900 mb-2">No courses found</h3>
+      <p class="text-gray-600 max-w-md mx-auto mb-6">Try adjusting your search or filters to find what you're looking for.</p>
+      <button (click)="clearFilters()" class="px-6 py-2.5 bg-violet-600 text-white rounded-xl font-medium hover:bg-violet-700">
+        Clear filters
+      </button>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="!loading && totalPages > 1" class="mt-10 flex justify-center gap-2">
+      <button
+        (click)="goToPage(currentPage - 1)"
+        [disabled]="currentPage === 0"
+        class="px-4 py-2 rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+      >
+        Previous
+      </button>
+      <span class="py-2 px-4 text-gray-600 text-sm">Page {{ currentPage + 1 }} of {{ totalPages }}</span>
+      <button
+        (click)="goToPage(currentPage + 1)"
+        [disabled]="currentPage >= totalPages - 1"
+        class="px-4 py-2 rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+      >
+        Next
+      </button>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,640 @@
+<div class="dashboard-admin min-h-screen bg-gray-50">
+  <!-- Admin nav bar -->
+  <div class="bg-white border-b border-gray-200 px-4 py-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <h1 class="text-xl font-bold text-gray-900">Admin Dashboard</h1>
+      <a routerLink="/" class="text-violet-600 hover:text-violet-700 font-medium text-sm">
+        ← Retour au site
+      </a>
+    </div>
+  </div>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-10">
+      <h2 class="text-2xl font-bold text-gray-900">Gestion des cours et inscriptions</h2>
+      <p class="text-gray-600 mt-1">Manage courses and enrollments</p>
+      <a routerLink="/courses" class="inline-block mt-4 text-violet-600 hover:text-violet-700 font-medium text-sm">
+        Voir les cours (utilisateur)
+      </a>
+    </div>
+
+    <!-- Tabs -->
+    <div class="border-b border-gray-200 mb-8">
+      <nav class="flex gap-8">
+        <button
+          (click)="setTab('courses')"
+          [class]="activeTab === 'courses'
+            ? 'border-violet-500 text-violet-600 border-b-2 pb-4 font-semibold'
+            : 'text-gray-500 hover:text-gray-700 pb-4'"
+        >
+          Courses
+        </button>
+        <button
+          (click)="setTab('categories')"
+          [class]="activeTab === 'categories'
+            ? 'border-violet-500 text-violet-600 border-b-2 pb-4 font-semibold'
+            : 'text-gray-500 hover:text-gray-700 pb-4'"
+        >
+          Categories
+        </button>
+        <button
+          (click)="setTab('instructors')"
+          [class]="activeTab === 'instructors'
+            ? 'border-violet-500 text-violet-600 border-b-2 pb-4 font-semibold'
+            : 'text-gray-500 hover:text-gray-700 pb-4'"
+        >
+          Instructors
+        </button>
+        <button
+          (click)="setTab('enrollments')"
+          [class]="activeTab === 'enrollments'
+            ? 'border-violet-500 text-violet-600 border-b-2 pb-4 font-semibold'
+            : 'text-gray-500 hover:text-gray-700 pb-4'"
+        >
+          Enrollments
+        </button>
+      </nav>
+    </div>
+
+    <!-- Courses Tab -->
+    <div *ngIf="activeTab === 'courses'" class="courses-section">
+      <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
+        <h2 class="text-xl font-semibold text-gray-900">Courses</h2>
+        <button
+          (click)="openAddCourse()"
+          class="px-4 py-2 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-700 transition-colors"
+        >
+          + Add Course
+        </button>
+      </div>
+
+      <!-- Search & Filter -->
+      <div class="mb-6 p-4 bg-white rounded-xl border border-gray-200">
+        <div class="flex flex-wrap gap-3 items-end">
+          <div class="flex-1 min-w-[160px]">
+            <label class="block text-xs font-medium text-gray-600 mb-1">Search</label>
+            <input
+              type="text"
+              [(ngModel)]="searchQuery"
+              placeholder="Name or description"
+              class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            />
+          </div>
+          <div class="w-24">
+            <label class="block text-xs font-medium text-gray-600 mb-1">Level</label>
+            <select
+              [(ngModel)]="filterLevel"
+              class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            >
+              <option value="">All</option>
+              <option value="A1">A1</option>
+              <option value="A2">A2</option>
+              <option value="B1">B1</option>
+              <option value="B2">B2</option>
+              <option value="C1">C1</option>
+              <option value="C2">C2</option>
+            </select>
+          </div>
+          <div class="w-40">
+            <label class="block text-xs font-medium text-gray-600 mb-1">Category</label>
+            <select
+              [(ngModel)]="filterCategoryId"
+              class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            >
+              <option [ngValue]="null">All</option>
+              <option *ngFor="let c of categories" [ngValue]="c.id">{{ c.name }}</option>
+            </select>
+          </div>
+          <div class="w-40">
+            <label class="block text-xs font-medium text-gray-600 mb-1">Instructor</label>
+            <select
+              [(ngModel)]="filterInstructorId"
+              class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            >
+              <option [ngValue]="null">All</option>
+              <option *ngFor="let i of instructors" [ngValue]="i.id">{{ i.firstName }} {{ i.lastName }}</option>
+            </select>
+          </div>
+          <button
+            (click)="applySearch()"
+            class="px-4 py-2 bg-violet-600 text-white rounded-lg text-sm font-medium hover:bg-violet-700"
+          >
+            Search
+          </button>
+          <button
+            (click)="clearSearch()"
+            class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50"
+          >
+            Clear
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="coursesError" class="mb-4 p-4 bg-red-50 text-red-700 rounded-lg text-sm">
+        {{ coursesError }}
+      </div>
+
+      <div *ngIf="coursesLoading" class="py-12 text-center text-gray-500">Loading courses...</div>
+
+      <div *ngIf="!coursesLoading && displayedCourses.length === 0 && !coursesError" class="py-12 text-center text-gray-500 bg-white rounded-xl border border-gray-200">
+        No courses yet. Add your first course.
+      </div>
+
+      <div *ngIf="!coursesLoading && displayedCourses.length > 0" class="overflow-x-auto bg-white rounded-xl border border-gray-200 shadow-sm">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Level</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Name</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Category</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Instructor</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Price</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Rating</th>
+              <th class="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            <tr *ngFor="let c of displayedCourses" class="hover:bg-gray-50">
+              <td class="px-6 py-4">
+                <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-violet-100 text-violet-800">{{ c.level || '-' }}</span>
+              </td>
+              <td class="px-6 py-4 font-medium text-gray-900">{{ c.name }}</td>
+              <td class="px-6 py-4 text-gray-600 text-sm">{{ getCategoryName(c.categoryId) }}</td>
+              <td class="px-6 py-4 text-gray-600 text-sm">{{ getInstructorName(c.instructorId) }}</td>
+              <td class="px-6 py-4 text-gray-600 text-sm">{{ c.price != null ? (c.price | number:'1.2-2') + ' €' : '-' }}</td>
+              <td class="px-6 py-4 text-gray-600 text-sm">{{ c.ratingAvg != null ? c.ratingAvg + '★ (' + (c.ratingCount || 0) + ')' : '-' }}</td>
+              <td class="px-6 py-4 text-right">
+                <button (click)="openCourseDetail(c.courseId!)" class="text-blue-600 hover:text-blue-700 font-medium text-sm mr-2">Modules</button>
+                <button (click)="openEditCourse(c)" class="text-violet-600 hover:text-violet-700 font-medium text-sm mr-2">Edit</button>
+                <button (click)="deleteCourse(c)" class="text-red-600 hover:text-red-700 font-medium text-sm">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div *ngIf="coursesPage && totalCoursePages > 1" class="mt-4 flex justify-center gap-2">
+        <button
+          (click)="goToCoursePage(coursePage - 1)"
+          [disabled]="coursesPage.first"
+          class="px-3 py-1 rounded border disabled:opacity-50"
+        >
+          Prev
+        </button>
+        <span class="py-1 text-sm text-gray-600">Page {{ coursePage + 1 }} / {{ totalCoursePages }}</span>
+        <button
+          (click)="goToCoursePage(coursePage + 1)"
+          [disabled]="coursesPage.last"
+          class="px-3 py-1 rounded border disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
+
+      <!-- Course Form Modal -->
+      <div *ngIf="showCourseForm" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" (click)="cancelCourseForm()">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">{{ editingCourseId ? 'Edit Course' : 'Add Course' }}</h3>
+          <form (ngSubmit)="saveCourse()" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+              <input
+                type="text"
+                [(ngModel)]="courseForm.name"
+                name="courseName"
+                class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-violet-500"
+                placeholder="e.g. Beginner English"
+                required
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Level</label>
+              <select
+                [(ngModel)]="courseForm.level"
+                name="courseLevel"
+                class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-violet-500"
+              >
+                <option value="A1">A1</option>
+                <option value="A2">A2</option>
+                <option value="B1">B1</option>
+                <option value="B2">B2</option>
+                <option value="C1">C1</option>
+                <option value="C2">C2</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <input
+                type="text"
+                [(ngModel)]="courseForm.description"
+                name="courseDesc"
+                class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-violet-500"
+                placeholder="e.g. Introduction to English"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+              <select
+                [(ngModel)]="courseForm.categoryId"
+                name="courseCategory"
+                class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-violet-500"
+              >
+                <option [ngValue]="undefined">None</option>
+                <option *ngFor="let cat of categories" [ngValue]="cat.id">{{ cat.name }}</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Instructor</label>
+              <select
+                [(ngModel)]="courseForm.instructorId"
+                name="courseInstructor"
+                class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-violet-500"
+              >
+                <option [ngValue]="undefined">None</option>
+                <option *ngFor="let inst of instructors" [ngValue]="inst.id">{{ inst.firstName }} {{ inst.lastName }}</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Price (€)</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                [(ngModel)]="courseForm.price"
+                name="coursePrice"
+                class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-violet-500"
+                placeholder="0.00"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Course image</label>
+              <div class="flex flex-col gap-3">
+                <div class="flex items-center gap-3">
+                  <label class="cursor-pointer inline-flex items-center px-4 py-2 rounded-lg border border-violet-300 bg-violet-50 text-violet-700 hover:bg-violet-100 text-sm font-medium">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    {{ courseFormUploading ? 'Uploading…' : 'Upload image' }}
+                    <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" class="hidden" (change)="onThumbnailFileSelected($event)" [disabled]="courseFormUploading" />
+                  </label>
+                  <span class="text-xs text-gray-500">JPEG, PNG, GIF or WebP, max 200 MB</span>
+                </div>
+                <input
+                  type="text"
+                  [(ngModel)]="courseForm.thumbnailUrl"
+                  name="courseThumb"
+                  class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-violet-500 text-sm"
+                  placeholder="Or paste image URL (e.g. https://...)"
+                />
+                @if (getThumbnailPreview()) {
+                  <div class="rounded-lg overflow-hidden border border-gray-200 w-32 h-20 bg-gray-100">
+                    <img [src]="getThumbnailPreview()" alt="Preview" class="w-full h-full object-cover" (error)="$any($event.target).style.display='none'" />
+                  </div>
+                }
+              </div>
+            </div>
+            <div class="flex gap-3 pt-2">
+              <button type="submit" class="flex-1 py-2 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-700">
+                {{ editingCourseId ? 'Update' : 'Create' }}
+              </button>
+              <button type="button" (click)="cancelCourseForm()" class="flex-1 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Course Detail (Modules & Lessons) Modal -->
+      <div *ngIf="selectedCourseId" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 modal-backdrop" (click)="closeCourseDetail()">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col" (click)="$event.stopPropagation()">
+          <div class="p-6 border-b border-gray-100 bg-gradient-to-r from-violet-50 to-white flex justify-between items-center">
+            <h3 class="text-lg font-semibold text-gray-900">Modules &amp; Lessons – Full course experience</h3>
+            <button (click)="closeCourseDetail()" class="p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors duration-200">✕</button>
+          </div>
+          <div class="p-6 overflow-y-auto flex-1">
+            <div *ngIf="courseDetailError" class="mb-4 p-4 bg-red-50 border border-red-100 text-red-700 rounded-xl text-sm flex items-center gap-2 animate-pulse">
+              <svg class="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+              {{ courseDetailError }}
+            </div>
+            <div class="mb-6">
+              <button (click)="openAddModule()" [disabled]="showModuleForm" class="inline-flex items-center gap-2 px-5 py-2.5 bg-violet-600 text-white rounded-xl text-sm font-semibold hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                Add Module
+              </button>
+              <!-- Module Form (animated, with validation) -->
+              <div *ngIf="showModuleForm" class="mt-5 module-form-enter p-6 bg-gradient-to-br from-violet-50/80 to-white rounded-2xl border border-violet-100 shadow-lg">
+                <h4 class="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <span class="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center text-violet-600">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                  </span>
+                  {{ editingModuleId ? 'Edit module' : 'New module' }}
+                </h4>
+                <div class="space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Titre du module <span class="text-red-500">*</span></label>
+                    <input
+                      type="text"
+                      [(ngModel)]="moduleForm.title"
+                      (blur)="validateModuleForm()"
+                      [class.border-red-400]="moduleFormErrors['title']"
+                      [class.ring-2]="moduleFormErrors['title']"
+                      [class.ring-red-200]="moduleFormErrors['title']"
+                      placeholder="Ex. Introduction, Grammaire de base..."
+                      maxlength="100"
+                      class="w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all duration-200"
+                    />
+                    <p *ngIf="moduleFormErrors['title']" class="mt-1.5 text-sm text-red-600 flex items-center gap-1">
+                      <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                      {{ moduleFormErrors['title'] }}
+                    </p>
+                    <p *ngIf="!moduleFormErrors['title'] && moduleForm.title" class="mt-1 text-xs text-gray-400">{{ moduleTitleLength }}/100 caractères</p>
+                  </div>
+                  <div class="flex gap-3 pt-1">
+                    <button (click)="saveModule()" class="px-5 py-2.5 bg-violet-600 text-white rounded-xl text-sm font-semibold hover:bg-violet-700 shadow-md shadow-violet-500/20 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
+                      Enregistrer
+                    </button>
+                    <button (click)="cancelModuleForm()" type="button" class="px-5 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors duration-200">
+                      Annuler
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Animated loading skeleton -->
+            <div *ngIf="modulesLoading" class="space-y-4 py-4">
+              <div class="h-16 rounded-xl skeleton-shimmer"></div>
+              <div class="h-16 rounded-xl skeleton-shimmer" style="animation-delay: 0.1s"></div>
+              <div class="h-16 rounded-xl skeleton-shimmer" style="animation-delay: 0.2s"></div>
+              <p class="text-center text-sm text-gray-500 mt-4">Chargement des modules...</p>
+            </div>
+            <div *ngIf="!modulesLoading && courseModules.length === 0" class="py-8 text-center text-gray-500 bg-gray-50 rounded-lg">No modules yet. Add one to get started.</div>
+            <div *ngFor="let m of courseModules" class="mb-6 border border-gray-200 rounded-lg p-4">
+              <div class="flex justify-between items-center mb-3">
+                <span class="font-semibold text-gray-900">{{ m.title }}</span>
+                <div>
+                  <button (click)="openEditModule(m)" class="text-violet-600 text-sm mr-2">Edit</button>
+                  <button (click)="openAddLesson(m.id!)" class="text-blue-600 text-sm mr-2">+ Lesson</button>
+                  <button (click)="deleteModule(m)" class="text-red-600 text-sm">Delete</button>
+                </div>
+              </div>
+              <ul *ngIf="m.lessons?.length" class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                <li *ngFor="let l of m.lessons" class="flex flex-wrap items-center gap-1">
+                  {{ l.title }}
+                  <span class="text-xs text-gray-400">({{ l.contentType || 'TEXT' }}, {{ l.durationMinutes ?? 0 }} min)</span>
+                  <button (click)="openEditLesson(l)" class="text-violet-500 text-xs">Edit</button>
+                  <button (click)="deleteLesson(l, m)" class="text-red-500 text-xs">×</button>
+                </li>
+              </ul>
+              <!-- Lesson Form -->
+              <div *ngIf="isLessonFormForModule(m.id)" class="mt-4 p-4 bg-gray-50 rounded-lg space-y-3">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Lesson title</label>
+                  <input [(ngModel)]="lessonForm.title" placeholder="e.g. Why English matters" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Content type</label>
+                  <select [(ngModel)]="lessonForm.contentType" class="w-full rounded-lg border border-gray-300 px-3 py-2">
+                    <option value="VIDEO">VIDEO</option>
+                    <option value="TEXT">TEXT</option>
+                    <option value="PDF">PDF</option>
+                    <option value="QUIZ">QUIZ</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Content URL (YouTube, Vimeo, direct video or PDF link)</label>
+                  <input [(ngModel)]="lessonForm.contentUrl" placeholder="https://youtube.com/watch?v=... or https://...video.mp4" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Content text (optional, for TEXT or supplementary)</label>
+                  <textarea [(ngModel)]="lessonForm.contentText" rows="3" placeholder="Written lesson content..." class="w-full rounded-lg border border-gray-300 px-3 py-2"></textarea>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Duration (minutes)</label>
+                  <input type="number" [(ngModel)]="lessonForm.durationMinutes" min="0" placeholder="0" class="w-full rounded-lg border border-gray-300 px-3 py-2" />
+                </div>
+                <div class="flex gap-2">
+                  <button (click)="saveLesson()" class="px-4 py-2 bg-violet-600 text-white rounded-lg text-sm font-medium">Save</button>
+                  <button (click)="cancelLessonForm()" class="px-4 py-2 border border-gray-300 rounded-lg text-sm">Cancel</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Categories Tab -->
+    <div *ngIf="activeTab === 'categories'" class="categories-section">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-semibold text-gray-900">Categories</h2>
+        <button (click)="openAddCategory()" class="px-4 py-2 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-700">
+          + Add Category
+        </button>
+      </div>
+      <div *ngIf="categoriesError" class="mb-4 p-4 bg-red-50 text-red-700 rounded-lg text-sm">{{ categoriesError }}</div>
+      <div *ngIf="categoriesLoading" class="py-12 text-center text-gray-500">Loading...</div>
+      <div *ngIf="!categoriesLoading && categories.length === 0" class="py-12 text-center text-gray-500 bg-white rounded-xl border">No categories yet.</div>
+      <div *ngIf="!categoriesLoading && categories.length > 0" class="overflow-x-auto bg-white rounded-xl border shadow-sm">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50"><tr>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Name</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Description</th>
+            <th class="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase">Actions</th>
+          </tr></thead>
+          <tbody class="divide-y divide-gray-200">
+            <tr *ngFor="let c of categories" class="hover:bg-gray-50">
+              <td class="px-6 py-4 font-medium">{{ c.name }}</td>
+              <td class="px-6 py-4 text-gray-600 text-sm">{{ c.description || '-' }}</td>
+              <td class="px-6 py-4 text-right">
+                <button (click)="openEditCategory(c)" class="text-violet-600 text-sm mr-4">Edit</button>
+                <button (click)="deleteCategory(c)" class="text-red-600 text-sm">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div *ngIf="showCategoryForm" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" (click)="cancelCategoryForm()">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6" (click)="$event.stopPropagation()">
+          <h3 class="text-lg font-semibold mb-4">{{ editingCategoryId ? 'Edit Category' : 'Add Category' }}</h3>
+          <form (ngSubmit)="saveCategory()" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+              <input type="text" [(ngModel)]="categoryForm.name" name="catName" class="w-full rounded-lg border px-4 py-2" required />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <input type="text" [(ngModel)]="categoryForm.description" name="catDesc" class="w-full rounded-lg border px-4 py-2" />
+            </div>
+            <div class="flex gap-3">
+              <button type="submit" class="flex-1 py-2 bg-violet-600 text-white rounded-lg font-medium">Save</button>
+              <button type="button" (click)="cancelCategoryForm()" class="flex-1 py-2 border rounded-lg">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Instructors Tab -->
+    <div *ngIf="activeTab === 'instructors'" class="instructors-section">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-semibold text-gray-900">Instructors</h2>
+        <button (click)="openAddInstructor()" class="px-4 py-2 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-700">
+          + Add Instructor
+        </button>
+      </div>
+      <div *ngIf="instructorsError" class="mb-4 p-4 bg-red-50 text-red-700 rounded-lg text-sm">{{ instructorsError }}</div>
+      <div *ngIf="instructorsLoading" class="py-12 text-center text-gray-500">Loading...</div>
+      <div *ngIf="!instructorsLoading && instructors.length === 0" class="py-12 text-center text-gray-500 bg-white rounded-xl border">No instructors yet.</div>
+      <div *ngIf="!instructorsLoading && instructors.length > 0" class="overflow-x-auto bg-white rounded-xl border shadow-sm">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50"><tr>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Name</th>
+            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Email</th>
+            <th class="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase">Actions</th>
+          </tr></thead>
+          <tbody class="divide-y divide-gray-200">
+            <tr *ngFor="let i of instructors" class="hover:bg-gray-50">
+              <td class="px-6 py-4 font-medium">{{ i.firstName }} {{ i.lastName }}</td>
+              <td class="px-6 py-4 text-gray-600 text-sm">{{ i.email || '-' }}</td>
+              <td class="px-6 py-4 text-right">
+                <button (click)="openEditInstructor(i)" class="text-violet-600 text-sm mr-4">Edit</button>
+                <button (click)="deleteInstructor(i)" class="text-red-600 text-sm">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div *ngIf="showInstructorForm" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" (click)="cancelInstructorForm()">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6" (click)="$event.stopPropagation()">
+          <h3 class="text-lg font-semibold mb-4">{{ editingInstructorId ? 'Edit Instructor' : 'Add Instructor' }}</h3>
+          <form (ngSubmit)="saveInstructor()" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+              <input type="text" [(ngModel)]="instructorForm.firstName" name="instFirst" class="w-full rounded-lg border px-4 py-2" required />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+              <input type="text" [(ngModel)]="instructorForm.lastName" name="instLast" class="w-full rounded-lg border px-4 py-2" required />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input type="email" [(ngModel)]="instructorForm.email" name="instEmail" class="w-full rounded-lg border px-4 py-2" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Bio</label>
+              <textarea [(ngModel)]="instructorForm.bio" name="instBio" class="w-full rounded-lg border px-4 py-2" rows="3"></textarea>
+            </div>
+            <div class="flex gap-3">
+              <button type="submit" class="flex-1 py-2 bg-violet-600 text-white rounded-lg font-medium">Save</button>
+              <button type="button" (click)="cancelInstructorForm()" class="flex-1 py-2 border rounded-lg">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Enrollments Tab -->
+    <div *ngIf="activeTab === 'enrollments'" class="enrollments-section">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-semibold text-gray-900">Enrollments</h2>
+        <button
+          (click)="openAddEnrollment()"
+          class="px-4 py-2 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-700 transition-colors"
+        >
+          + Add Enrollment
+        </button>
+      </div>
+
+      <div *ngIf="enrollmentsError" class="mb-4 p-4 bg-red-50 text-red-700 rounded-lg text-sm">
+        {{ enrollmentsError }}
+      </div>
+
+      <div *ngIf="enrollmentsLoading" class="py-12 text-center text-gray-500">Loading enrollments...</div>
+
+      <div *ngIf="!enrollmentsLoading && enrollments.length === 0 && !enrollmentsError" class="py-12 text-center text-gray-500 bg-white rounded-xl border border-gray-200">
+        No enrollments yet. Add your first enrollment.
+      </div>
+
+      <div *ngIf="!enrollmentsLoading && enrollments.length > 0" class="overflow-x-auto bg-white rounded-xl border border-gray-200 shadow-sm">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">ID</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Student</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Course ID</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
+              <th class="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            <tr *ngFor="let e of enrollments" class="hover:bg-gray-50">
+              <td class="px-6 py-4 text-gray-900 font-medium">{{ e.id }}</td>
+              <td class="px-6 py-4 text-gray-900">{{ e.studentName }}</td>
+              <td class="px-6 py-4 text-gray-600">{{ e.courseId }}</td>
+              <td class="px-6 py-4">
+                <span [class]="e.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'"
+                  class="px-2 py-0.5 rounded-full text-xs font-medium">{{ e.status }}</span>
+              </td>
+              <td class="px-6 py-4 text-right">
+                <button (click)="openEditEnrollment(e)" class="text-violet-600 hover:text-violet-700 font-medium text-sm mr-4">Edit</button>
+                <button (click)="deleteEnrollment(e)" class="text-red-600 hover:text-red-700 font-medium text-sm">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Enrollment Form Modal -->
+      <div *ngIf="showEnrollmentForm" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" (click)="cancelEnrollmentForm()">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6" (click)="$event.stopPropagation()">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">{{ editingEnrollmentId ? 'Edit Enrollment' : 'Add Enrollment' }}</h3>
+          <form (ngSubmit)="saveEnrollment()" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Student Name</label>
+              <input
+                type="text"
+                [(ngModel)]="enrollmentForm.studentName"
+                name="studentName"
+                class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                placeholder="e.g. John Doe"
+                required
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Course ID</label>
+              <input
+                type="number"
+                [(ngModel)]="enrollmentForm.courseId"
+                name="courseId"
+                class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                placeholder="e.g. 69"
+                required
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <select
+                [(ngModel)]="enrollmentForm.status"
+                name="status"
+                class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+              >
+                <option value="active">Active</option>
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+            <div class="flex gap-3 pt-2">
+              <button type="submit" class="flex-1 py-2 bg-violet-600 text-white rounded-lg font-medium hover:bg-violet-700">
+                {{ editingEnrollmentId ? 'Update' : 'Create' }}
+              </button>
+              <button type="button" (click)="cancelEnrollmentForm()" class="flex-1 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

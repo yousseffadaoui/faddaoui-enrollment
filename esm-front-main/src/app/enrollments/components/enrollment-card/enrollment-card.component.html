@@ -1,0 +1,77 @@
+<div
+  class="group rounded-3xl bg-white dark:bg-slate-800/80 border border-gray-100/80 dark:border-slate-700/80 overflow-hidden shadow-lg shadow-gray-200/40 dark:shadow-black/20 transition-all duration-300 ease-out hover:shadow-xl hover:shadow-violet-500/10 dark:hover:shadow-violet-500/5 hover:-translate-y-1 hover:border-violet-200/60 dark:hover:border-violet-500/30"
+  [class.flex]="viewMode === 'list'"
+  [class.flex-row]="viewMode === 'list'"
+>
+  <div class="relative overflow-hidden shrink-0" [class.w-full]="viewMode === 'grid'" [class.h-48]="viewMode === 'grid'" [class.w-56]="viewMode === 'list'" [class.min-h-[160px]]="viewMode === 'list'">
+    <img [src]="thumbnail" [alt]="course.course?.name || 'Course'" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+    <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none"></div>
+    @if (isCompleted) {
+      <div class="absolute inset-0 bg-emerald-500/10 pointer-events-none"></div>
+    }
+    <span
+      [class]="statusClass"
+      class="absolute top-3 right-3 px-3 py-1.5 rounded-xl text-xs font-semibold shadow-lg backdrop-blur-sm"
+    >
+      {{ statusLabel }}
+    </span>
+  </div>
+
+  <div class="flex flex-1 flex-col p-6" [class.flex-row]="viewMode === 'list'" [class.items-center]="viewMode === 'list'">
+    <div class="flex-1 min-w-0">
+      <h3 class="text-lg font-bold text-gray-900 dark:text-white truncate">{{ course.course?.name || 'Course' }}</h3>
+      @if (instructorName) {
+        <p class="text-sm text-gray-500 dark:text-slate-400 mt-0.5">{{ instructorName }}</p>
+      }
+      <p class="text-xs text-gray-400 dark:text-slate-500 mt-2">
+        Enrolled {{ course.enrolledAt ? (course.enrolledAt | date:'mediumDate') : '' }}
+      </p>
+      <div class="mt-4">
+        <app-progress-bar [percent]="course.progressPercent" [showLabel]="true" />
+      </div>
+    </div>
+
+    <div class="flex flex-wrap gap-2.5 mt-5" [class.mt-0]="viewMode === 'list'" [class.ml-6]="viewMode === 'list'">
+      @if (course.enrollmentId && course.enrollmentId !== 0 && course.status !== 'cancelled' && course.progressPercent < 100) {
+        <a
+          [routerLink]="['/enrollments', 'progress', course.enrollmentId]"
+          class="inline-flex items-center px-5 py-2.5 rounded-xl bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700 shadow-md shadow-violet-500/20 hover:shadow-violet-500/30 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+        >
+          Continue Learning
+        </a>
+      }
+      @if (!course.enrollmentId || course.enrollmentId === 0 || course.status === 'not_enrolled') {
+        <button
+          (click)="onEnroll()"
+          class="inline-flex items-center px-5 py-2.5 rounded-xl bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700 shadow-md shadow-violet-500/20 hover:shadow-violet-500/30 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+        >
+          Enroll
+        </button>
+      }
+      @if (isCompleted) {
+        <a
+          [routerLink]="['/enrollments', 'certificate', course.enrollmentId]"
+          class="inline-flex items-center px-5 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 shadow-md shadow-emerald-500/20 hover:shadow-emerald-500/30 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+        >
+          View Certificate
+        </a>
+      }
+      @if (course.enrollmentId && (isCompleted || course.status === 'cancelled')) {
+        <button
+          (click)="onDelete()"
+          class="inline-flex items-center px-4 py-2.5 rounded-xl border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200"
+        >
+          Delete
+        </button>
+      }
+      @if (course.enrollmentId && course.enrollmentId !== 0 && course.status !== 'cancelled' && course.status !== 'completed') {
+        <button
+          (click)="onCancel()"
+          class="inline-flex items-center px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-400 text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-700/80 transition-all duration-200"
+        >
+          Cancel Enrollment
+        </button>
+      }
+    </div>
+  </div>
+</div>

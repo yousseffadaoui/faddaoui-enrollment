@@ -1,0 +1,43 @@
+# Base de données uniquement - pas de build Java (utilise des images existantes)
+# Utile quand la connexion est instable
+# Lancer : docker-compose -f docker-compose.db-only.yml up -d
+# Puis exécuter les services Spring Boot localement avec --spring.profiles.active=docker
+
+services:
+  postgres-courses:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: courses_db
+      POSTGRES_USER: esm
+      POSTGRES_PASSWORD: esm_secret
+    volumes:
+      - pg-courses-data:/var/lib/postgresql/data
+      - ./docker/init-db/courses:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U esm -d courses_db"]
+      interval: 3s
+      timeout: 5s
+      retries: 5
+
+  postgres-enrollments:
+    image: postgres:16-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: enrollments_db
+      POSTGRES_USER: esm
+      POSTGRES_PASSWORD: esm_secret
+    volumes:
+      - pg-enrollments-data:/var/lib/postgresql/data
+      - ./docker/init-db/enrollments:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U esm -d enrollments_db"]
+      interval: 3s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pg-courses-data:
+  pg-enrollments-data:

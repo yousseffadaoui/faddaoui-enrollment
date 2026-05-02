@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: enrollment-service
+  labels:
+    app: enrollment-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: enrollment-service
+  template:
+    metadata:
+      labels:
+        app: enrollment-service
+    spec:
+      containers:
+        - name: enrollment-service
+          # Pipeline CD pousse: <DOCKERHUB_USERNAME>/enrollment-service:latest + :<sha>
+          # Mets l'image que tu veux déployer (ex: latest ou sha)
+          image: enrollment-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8084
+          env:
+            - name: EUREKA_CLIENT_ENABLED
+              value: "false"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+

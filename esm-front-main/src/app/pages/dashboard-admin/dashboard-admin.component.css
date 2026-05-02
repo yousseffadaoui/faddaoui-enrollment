@@ -1,0 +1,45 @@
+.dashboard-admin table th,
+.dashboard-admin table td {
+  white-space: nowrap;
+}
+
+.dashboard-admin table td:nth-child(3) {
+  white-space: normal;
+  max-width: 200px;
+}
+
+/* Module & Lesson form animations */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.module-form-enter {
+  animation: slideDown 0.3s ease-out forwards;
+}
+
+.modal-backdrop {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}

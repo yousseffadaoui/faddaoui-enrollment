@@ -1,0 +1,59 @@
+name: Enrollment-service CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-jacoco-sonar:
+    name: Build, Test, JaCoCo, SonarQube
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Maven - clean verify (tests + JaCoCo XML)
+        run: ./mvnw -B clean verify
+
+      - name: SonarQube analysis
+        if: ${{ secrets.SONAR_TOKEN != '' && vars.SONAR_HOST_URL != '' }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          ./mvnw -B sonar:sonar \
+            -Dsonar.host.url=${{ vars.SONAR_HOST_URL }} \
+            -Dsonar.login=${SONAR_TOKEN}
+
+  docker-build:
+    name: Docker build
+    runs-on: ubuntu-latest
+    needs: [test-jacoco-sonar]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker build (local)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: enrollment-service:ci
+
