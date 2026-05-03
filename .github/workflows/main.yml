@@ -1,0 +1,28 @@
+name: CI - Enrollment Service
+
+on:
+  push:
+    paths:
+      - 'Enrollment-service/**'
+  pull_request:
+    paths:
+      - 'Enrollment-service/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Build & Test
+        run: |
+          cd Enrollment-service
+          ./mvnw clean verify
