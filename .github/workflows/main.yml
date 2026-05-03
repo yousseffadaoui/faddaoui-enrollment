@@ -1,6 +1,7 @@
 name: CI - Enrollment Service
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'Enrollment-service/**'
