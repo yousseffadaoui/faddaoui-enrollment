@@ -16,7 +16,7 @@ pipeline {
         DOCKER_IMAGE = 'yousseffadaoui/enrollment-service'
         DOCKER_TAG = 'latest'
         // ID Jenkins des identifiants Docker Hub (username/password)
-        DOCKERHUB_CREDENTIALS_ID = 'dockerhub-yousseffadaoui'
+        DOCKERHUB_CREDENTIALS_ID = 'dockerhub_yousseffadaoui'
         // Clé / nom du projet Sonar (adapter si besoin)
         SONAR_PROJECT_KEY = 'enrollment-service'
         SONAR_PROJECT_NAME = 'enrollment-service'
