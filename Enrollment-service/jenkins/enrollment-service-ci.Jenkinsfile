@@ -42,7 +42,12 @@ pipeline {
         stage('Maven — clean verify (tests + JaCoCo)') {
             steps {
                 dir("${env.SVC_ROOT}") {
-                    sh "${env.MAVEN_CLI} clean verify -B"
+                    sh """
+                        if [ "${env.MAVEN_CLI}" = "./mvnw" ]; then
+                            chmod +x ./mvnw
+                        fi
+                        ${env.MAVEN_CLI} clean verify -B
+                    """
                 }
             }
             post {
@@ -61,6 +66,9 @@ pipeline {
                     // Nom de l’installation SonarQube défini dans Jenkins > Manage Jenkins > Configure System
                     withSonarQubeEnv('SonarQube') {
                         sh """
+                            if [ "${env.MAVEN_CLI}" = "./mvnw" ]; then
+                                chmod +x ./mvnw
+                            fi
                             ${env.MAVEN_CLI} -B sonar:sonar \\
                               -Dsonar.projectKey=$SONAR_PROJECT_KEY \\
                               -Dsonar.projectName=$SONAR_PROJECT_NAME \\
