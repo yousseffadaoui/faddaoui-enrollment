@@ -20,7 +20,7 @@ pipeline {
 
         stage('Kubernetes apply') {
             steps {
-                bat '''
+                sh '''
                     kubectl apply -f k8s/enrollment-deployment.yml -f k8s/enrollment-service.yaml
                 '''
             }
@@ -28,7 +28,7 @@ pipeline {
 
         stage('Rollout status') {
             steps {
-                bat '''
+                sh '''
                     kubectl rollout status deployment/enrollment-service --timeout=5m
                 '''
             }
