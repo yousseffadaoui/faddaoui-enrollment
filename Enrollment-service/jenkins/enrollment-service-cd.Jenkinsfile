@@ -24,7 +24,6 @@ pipeline {
                     sh '''
                         export KUBECONFIG=$KUBECONFIG_FILE
                         kubectl apply -f Enrollment-service/k8s/enrollment-deployment.yml -f Enrollment-service/k8s/enrollment-service.yaml --validate=false
-                        kubectl rollout status deployment/enrollment-service --timeout=5m
                     '''
                 }
             }
