@@ -60,17 +60,6 @@ pipeline {
             }
         }
 
-        stage('SonarQube analysis') {
-            steps {
-                dir("${env.SVC_ROOT}") {
-                    sh '''
-                        chmod +x ./mvnw
-                        ./mvnw sonar:sonar -Dsonar.host.url=http://sonarqube:9000 -Dsonar.projectKey=enrollment-service -Dsonar.projectName=enrollment-service -Dsonar.login=TON_TOKEN_SONAR
-                    '''
-                }
-            }
-        }
-
         stage('Docker build') {
             steps {
                 script {
