@@ -21,7 +21,7 @@ pipeline {
         stage('Kubernetes apply') {
             steps {
                 sh '''
-                    kubectl apply -f k8s/enrollment-deployment.yml -f k8s/enrollment-service.yaml
+                    kubectl apply -f Enrollment-service/k8s/enrollment-deployment.yml -f Enrollment-service/k8s/enrollment-service.yaml
                 '''
             }
         }
