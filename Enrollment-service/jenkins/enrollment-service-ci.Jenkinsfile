@@ -63,18 +63,10 @@ pipeline {
         stage('SonarQube analysis') {
             steps {
                 dir("${env.SVC_ROOT}") {
-                    // Nom de l’installation SonarQube défini dans Jenkins > Manage Jenkins > Configure System
-                    withSonarQubeEnv('SonarQube') {
-                        sh """
-                            if [ "${env.MAVEN_CLI}" = "./mvnw" ]; then
-                                chmod +x ./mvnw
-                            fi
-                            ${env.MAVEN_CLI} -B sonar:sonar \\
-                              -Dsonar.projectKey=$SONAR_PROJECT_KEY \\
-                              -Dsonar.projectName=$SONAR_PROJECT_NAME \\
-                              -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
-                        """
-                    }
+                    sh '''
+                        chmod +x ./mvnw
+                        ./mvnw sonar:sonar -Dsonar.host.url=http://host.docker.internal:9000 -Dsonar.projectKey=enrollment-service -Dsonar.projectName=enrollment-service -Dsonar.login=TON_TOKEN_SONAR
+                    '''
                 }
             }
         }
