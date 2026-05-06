@@ -80,7 +80,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub_yousseffadaoui', usernameVariable: 'DH_USER', passwordVariable: 'DH_PASS')]) {
                     sh '''
                         echo "$DH_PASS" | docker login -u "$DH_USER" --password-stdin
-                        docker push yousseffadaoui/enrollment-service:latest
+                        docker push you25/enrollment-service:latest
                     '''
                 }
             }
