@@ -77,15 +77,11 @@ pipeline {
 
         stage('Docker Hub push') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: "${DOCKERHUB_CREDENTIALS_ID}",
-                    usernameVariable: 'DH_USER',
-                    passwordVariable: 'DH_PASS'
-                )]) {
-                    sh """
-                        docker login -u $DH_USER -p $DH_PASS
-                        docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
-                    """
+                withCredentials([usernamePassword(credentialsId: 'dockerhub_yousseffadaoui', usernameVariable: 'DH_USER', passwordVariable: 'DH_PASS')]) {
+                    sh '''
+                        echo "$DH_PASS" | docker login -u "$DH_USER" --password-stdin
+                        docker push yousseffadaoui/enrollment-service:latest
+                    '''
                 }
             }
         }
