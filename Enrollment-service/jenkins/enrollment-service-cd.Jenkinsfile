@@ -20,17 +20,13 @@ pipeline {
 
         stage('Kubernetes apply') {
             steps {
-                sh '''
-                    kubectl apply -f Enrollment-service/k8s/enrollment-deployment.yml -f Enrollment-service/k8s/enrollment-service.yaml --validate=false
-                '''
-            }
-        }
-
-        stage('Rollout status') {
-            steps {
-                sh '''
-                    kubectl rollout status deployment/enrollment-service --timeout=5m
-                '''
+                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG_FILE')]) {
+                    sh '''
+                        export KUBECONFIG=$KUBECONFIG_FILE
+                        kubectl apply -f Enrollment-service/k8s/enrollment-deployment.yml -f Enrollment-service/k8s/enrollment-service.yaml --validate=false
+                        kubectl rollout status deployment/enrollment-service --timeout=5m
+                    '''
+                }
             }
         }
     }
