@@ -14,7 +14,9 @@ pipeline {
                     kubectl apply -f course-service/k8s/course-deployment.yml
                     kubectl apply -f course-service/k8s/course-service.yaml
 
-                    kubectl rollout status deployment/course-service
+                    kubectl rollout status deployment/course-service --timeout=60s
+                    kubectl get pods
+                    kubectl get svc
                     '''
                 }
             }
