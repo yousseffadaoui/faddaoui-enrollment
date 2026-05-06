@@ -34,7 +34,7 @@ pipeline {
                 script {
                     def root = fileExists('Enrollment-service/pom.xml') ? 'Enrollment-service' : '.'
                     env.SVC_ROOT = root
-                    env.MAVEN_CLI = fileExists("${root}/mvnw.cmd") ? 'mvnw.cmd' : 'mvn'
+                    env.MAVEN_CLI = fileExists("${root}/mvnw") ? './mvnw' : 'mvn'
                 }
             }
         }
@@ -42,7 +42,7 @@ pipeline {
         stage('Maven — clean verify (tests + JaCoCo)') {
             steps {
                 dir("${env.SVC_ROOT}") {
-                    bat "${env.MAVEN_CLI} clean verify -B"
+                    sh "${env.MAVEN_CLI} clean verify -B"
                 }
             }
             post {
@@ -60,10 +60,10 @@ pipeline {
                 dir("${env.SVC_ROOT}") {
                     // Nom de l’installation SonarQube défini dans Jenkins > Manage Jenkins > Configure System
                     withSonarQubeEnv('SonarQube') {
-                        bat """
-                            ${env.MAVEN_CLI} -B sonar:sonar ^
-                              -Dsonar.projectKey=%SONAR_PROJECT_KEY% ^
-                              -Dsonar.projectName=%SONAR_PROJECT_NAME% ^
+                        sh """
+                            ${env.MAVEN_CLI} -B sonar:sonar \\
+                              -Dsonar.projectKey=$SONAR_PROJECT_KEY \\
+                              -Dsonar.projectName=$SONAR_PROJECT_NAME \\
                               -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
                         """
                     }
@@ -75,11 +75,11 @@ pipeline {
             steps {
                 script {
                     def ctx = "${env.SVC_ROOT}"
-                    def dockerfile = "${ctx}\\Dockerfile"
+                    def dockerfile = "${ctx}/Dockerfile"
                     if (ctx == '.') {
                         dockerfile = 'Dockerfile'
                     }
-                    bat """
+                    sh """
                         docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} -f ${dockerfile} ${ctx}
                     """
                 }
@@ -93,8 +93,8 @@ pipeline {
                     usernameVariable: 'DH_USER',
                     passwordVariable: 'DH_PASS'
                 )]) {
-                    bat """
-                        docker login -u %DH_USER% -p %DH_PASS%
+                    sh """
+                        docker login -u $DH_USER -p $DH_PASS
                         docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
                     """
                 }
