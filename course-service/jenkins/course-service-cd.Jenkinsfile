@@ -8,8 +8,8 @@ pipeline {
 
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG_FILE')]) {
 
-                    bat '''
-                    set KUBECONFIG=%KUBECONFIG_FILE%
+                    sh '''
+                    export KUBECONFIG=$KUBECONFIG_FILE
 
                     kubectl apply -f course-service/k8s/course-deployment.yml
                     kubectl apply -f course-service/k8s/course-service.yaml
