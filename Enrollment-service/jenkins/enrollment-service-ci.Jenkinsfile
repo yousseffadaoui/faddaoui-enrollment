@@ -13,7 +13,7 @@ pipeline {
     }
 
     environment {
-        DOCKER_IMAGE = 'yousseffadaoui/enrollment-service'
+        DOCKER_IMAGE = 'you25/enrollment-service'
         DOCKER_TAG = 'latest'
         // ID Jenkins des identifiants Docker Hub (username/password)
         DOCKERHUB_CREDENTIALS_ID = 'dockerhub_yousseffadaoui'
