@@ -7,7 +7,6 @@ pipeline {
     }
 
     stages {
-
         stage('Checkout') {
             steps {
                 checkout scm
@@ -27,7 +26,7 @@ pipeline {
             steps {
                 dir('course-service') {
                     withSonarQubeEnv('SonarQube') {
-                        sh './mvnw sonar:sonar -Dsonar.projectKey=course-service -Dsonar.projectName=course-service'
+                        sh './mvnw sonar:sonar -Dsonar.projectKey=course-service -Dsonar.projectName=course-service -Dsonar.token=$SONAR_AUTH_TOKEN'
                     }
                 }
             }
