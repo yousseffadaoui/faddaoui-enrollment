@@ -1,0 +1,35 @@
+name: CI - Enrollment Service
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "Enrollment-service/**"
+      - ".github/workflows/enrollment-ci.yml"
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - "Enrollment-service/**"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Give execute permission to mvnw
+        run: chmod +x Enrollment-service/mvnw
+
+      - name: Build and test
+        run: |
+          cd Enrollment-service
+          ./mvnw clean verify
