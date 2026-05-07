@@ -1,0 +1,24 @@
+name: CD - Enrollment Service
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["CI - Enrollment Service"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Show Kubernetes deployment files
+        run: |
+          echo "CD Enrollment Service started"
+          ls -la Enrollment-service/k8s
+          cat Enrollment-service/k8s/enrollment-deployment.yml
+          cat Enrollment-service/k8s/enrollment-service.yaml
