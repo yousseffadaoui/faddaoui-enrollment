@@ -4,9 +4,11 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'you25/course-service:latest'
         CD_JOB_NAME = 'course-service-cd'
+        SONAR_TOKEN = credentials('sonar-token')
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 checkout scm
@@ -26,7 +28,7 @@ pipeline {
             steps {
                 dir('course-service') {
                     withSonarQubeEnv('SonarQube') {
-                        sh './mvnw sonar:sonar -Dsonar.projectKey=course-service -Dsonar.projectName=course-service -Dsonar.token=$SONAR_AUTH_TOKEN'
+                        sh './mvnw sonar:sonar -Dsonar.projectKey=course-service -Dsonar.projectName=course-service -Dsonar.token=$SONAR_TOKEN'
                     }
                 }
             }
