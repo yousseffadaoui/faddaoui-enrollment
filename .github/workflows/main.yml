@@ -1,16 +1,35 @@
-- name: Checkout
-  uses: actions/checkout@v4
+name: CI - Enrollment Service
 
-- name: Setup Java
-  uses: actions/setup-java@v4
-  with:
-    distribution: 'temurin'
-    java-version: '17'
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "Enrollment-service/**"
+      - ".github/workflows/main.yml"
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - "Enrollment-service/**"
+  workflow_dispatch:
 
-- name: Give execute permission to mvnw
-  run: chmod +x Enrollment-service/mvnw
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-- name: Build & Test
-  run: |
-    cd Enrollment-service
-    ./mvnw clean verify
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Give execute permission to mvnw
+        run: chmod +x Enrollment-service/mvnw
+
+      - name: Build and test
+        run: |
+          cd Enrollment-service
+          ./mvnw clean verify
