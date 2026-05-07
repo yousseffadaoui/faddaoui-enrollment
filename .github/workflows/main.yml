@@ -1,15 +1,15 @@
-name: CI - Enrollment Service
+name: CI - Course Service
 
 on:
   push:
     branches: [ "main" ]
     paths:
-      - "Enrollment-service/**"
-      - ".github/workflows/main.yml"
+      - "course-service/**"
+      - ".github/workflows/course-ci.yml"
   pull_request:
     branches: [ "main" ]
     paths:
-      - "Enrollment-service/**"
+      - "course-service/**"
   workflow_dispatch:
 
 jobs:
@@ -27,9 +27,9 @@ jobs:
           java-version: 17
 
       - name: Give execute permission to mvnw
-        run: chmod +x Enrollment-service/mvnw
+        run: chmod +x course-service/mvnw
 
       - name: Build and test
         run: |
-          cd Enrollment-service
+          cd course-service
           ./mvnw clean verify
